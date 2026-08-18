@@ -1,0 +1,8 @@
+<!-- Sanitised custom rules developed and validated in the lab. -->
+<group name="windows,sysmon,custom_detection,lab,">
+  <rule id="100100" level="7">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)custom-rule-test\.txt</field>
+    <description>LAB: Process opened the custom rule test file</description>
+  </rule>
+</group>

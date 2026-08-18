@@ -74,7 +74,20 @@ Windows activity
 
 The end-to-end pipeline is operational.
 
+## Extended validation summary
+
+Further exercises validated the following capabilities:
+
+| Capability | Evidence |
+|---|---|
+| Custom detection | Rule `100100` matched a distinctive Sysmon process command line |
+| Existing coverage review | Encoded PowerShell matched built-in rule `92057`, level 12, MITRE `T1059.001` |
+| File Integrity Monitoring | Rules `554`, `550` and `553` detected file creation, modification and deletion |
+| Who-data | Alerts identified the modifying Windows user and PowerShell process |
+| Authentication monitoring | Event `4625` matched rule `60122` with status/substatus context |
+| Brute-force correlation | Eight failures within 240 seconds triggered rule `60204`, MITRE `T1110` |
+| Configuration assessment | CIS Windows 10 baseline recorded at 29%; account-lockout controls reviewed |
+
 ## Evidence-handling note
 
 Raw exports may include account names, email addresses, SIDs, hostnames, internal addresses, command lines and file hashes. Only redacted screenshots or small sanitised extracts should be committed publicly.
-
