@@ -15,6 +15,13 @@ Suggested future files:
 08-whodata-attribution.png
 09-windows-logon-correlation.png
 10-cis-sca-baseline.png
+11-wazuh-agents-active.png
+12-prometheus-targets-up.png
+13-ubuntu-host-dashboard.png
+14-docker-container-dashboard.png
+15-loki-log-exploration.png
+16-discord-alert-firing.png
+17-discord-alert-resolved.png
 ```
 
 Before committing any screenshot or export, remove:

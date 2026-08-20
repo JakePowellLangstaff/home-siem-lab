@@ -1,12 +1,12 @@
-# Home SIEM Lab: Wazuh, Sysmon, Docker and Secure Remote Administration
+# Home SOC Lab: Wazuh SIEM, Endpoint Detection and Observability
 
-An independently designed and implemented home security monitoring lab built on repurposed enterprise hardware. The project provides centralised endpoint telemetry, alerting, threat hunting and MITRE ATT&CK context using Wazuh and Microsoft Sysmon.
+An independently designed home security monitoring lab built on repurposed enterprise hardware. The project combines Wazuh endpoint detection with Prometheus metrics, Loki logs, Grafana dashboards and tested alert delivery.
 
 The repository is a living technical record. It documents not only what was deployed, but also how each component was validated and what security trade-offs remain.
 
 ## Project status
 
-**Current phase:** Core platform operational; endpoint detection, FIM, authentication correlation and security assessment validated.
+**Current phase:** Core SOC and observability platforms operational; endpoint monitoring, detection, backup and infrastructure alerting validated.
 
 - Ubuntu Server installed and hardened for remote administration
 - Stable LAN addressing configured through DHCP reservation
@@ -14,8 +14,8 @@ The repository is a living technical record. It documents not only what was depl
 - Docker Engine and Docker Compose installed and validated
 - Wazuh 4.14.7 single-node stack deployed in containers
 - Default Wazuh service credentials replaced
-- Windows 10 endpoint enrolled and reporting normally
-- Microsoft Sysmon configured for process and network telemetry
+- Two Windows endpoints and the Ubuntu host enrolled and reporting normally
+- Microsoft Sysmon configured on both Windows endpoints for process and network telemetry
 - Centralised Wazuh policy distributing Sysmon log collection
 - End-to-end detections validated in Wazuh Threat Hunting
 - Custom Wazuh rule authored, syntax-tested and triggered successfully
@@ -23,6 +23,12 @@ The repository is a living technical record. It documents not only what was depl
 - Who-data attribution verified with responsible user, process, hashes and content diff
 - Windows failed logons investigated and correlated into a level-10 brute-force alert
 - CIS Windows 10 SCA baseline established and one lockout-policy finding remediated
+- Wazuh ports restricted to required LAN interfaces; indexer and API ports removed from host exposure
+- Tailscale Serve configured for encrypted, tailnet-only dashboard access
+- Weekly checksum-verified Wazuh backups automated with a systemd timer
+- Grafana, Prometheus, Loki, Alloy, Node Exporter and cAdvisor deployed as a separate observability stack
+- Six Prometheus scrape targets validated; Ubuntu and container dashboards operational
+- Critical target-availability alert connected to Discord and tested through firing and recovery
 
 ## What this project demonstrates
 
@@ -38,6 +44,10 @@ The repository is a living technical record. It documents not only what was depl
 - File Integrity Monitoring and Windows Who-data auditing
 - Authentication-event triage and threshold-based correlation
 - CIS benchmark assessment and risk-aware remediation
+- Host and container metrics collection with PromQL-backed dashboards
+- Centralised journald and Docker log exploration with Loki
+- Alert lifecycle validation: pending, firing, notification, recovery and resolved state
+- Backup automation, integrity verification and controlled service recovery
 - Secure handling of service credentials and configuration
 - Clear implementation documentation and repeatable validation
 
@@ -45,11 +55,17 @@ The repository is a living technical record. It documents not only what was depl
 
 ```mermaid
 flowchart TD
-    E["Windows endpoint\nwin-lab-01"] -->|"Sysmon, Security logs and FIM"| A["Wazuh agent"]
-    A -->|"TCP 1514"| M["Wazuh manager\nDocker"]
+    E1["Windows endpoint\nwin-lab-01"] -->|"Sysmon, Security logs and FIM"| M["Wazuh manager\nDocker"]
+    E2["Windows endpoint\nwin-admin-01"] -->|"Sysmon and Windows logs"| M
+    S["Ubuntu host\nhomeserver"] -->|"Linux telemetry"| M
     M --> I["Wazuh indexer\nDocker"]
     I --> D["Wazuh dashboard\nHTTPS 443"]
-    R["Administrator workstation"] -->|"Tailscale + SSH"| S["Ubuntu home server"]
+    S --> P["Prometheus"]
+    S --> L["Loki"]
+    P --> G["Grafana dashboards and alerts"]
+    L --> G
+    G --> X["Discord notifications"]
+    R["Administrator workstation"] -->|"Tailscale + SSH"| S
     R -->|"HTTPS"| D
 ```
 
@@ -63,9 +79,12 @@ flowchart TD
 | Container platform | Docker Engine and Docker Compose |
 | SIEM | Wazuh 4.14.7 single-node deployment |
 | Endpoint telemetry | Wazuh Agent 4.14.7 and Microsoft Sysmon |
+| Metrics | Prometheus, Node Exporter and cAdvisor |
+| Logs | Loki and Grafana Alloy |
+| Dashboards and alerting | Grafana with Discord contact point |
 | Remote administration | OpenSSH and Tailscale |
 | Host firewall | UFW |
-| Endpoint | Windows 10 Pro lab workstation |
+| Endpoints | Windows 10, Windows 11 and Ubuntu Server |
 
 ## Repository structure
 
@@ -83,7 +102,8 @@ home-siem-lab/
 │   ├── 07-authentication-monitoring.md
 │   ├── 08-security-configuration-assessment.md
 │   ├── 09-roadmap.md
-│   └── 10-progress-checklist.md
+│   ├── 10-progress-checklist.md
+│   └── 11-observability-alerting-and-resilience.md
 ├── config/
 │   ├── sysmon-minimal.xml
 │   ├── wazuh-windows-sysmon-agent.conf
@@ -101,25 +121,25 @@ home-siem-lab/
 5. **Evidence-driven validation.** Every layer was tested independently before continuing to the next integration.
 6. **Avoid duplicate detections.** A proposed encoded-PowerShell rule was removed after stronger built-in coverage was confirmed.
 7. **Risk-aware remediation.** CIS findings are evaluated before configuration changes are applied.
+8. **Separate monitoring stack.** Observability services run in their own Compose project so Wazuh and infrastructure monitoring can be operated independently.
+9. **Test the full alert lifecycle.** Alerting was validated by intentionally stopping Node Exporter, receiving a critical Discord notification, restoring the service and confirming resolution.
 
 ## Current limitations
 
 - The two physical disks are configured as RAID 0. This provides no redundancy; loss of either disk would destroy the array.
-- The Wazuh dashboard currently uses a locally generated certificate, so browsers display a trust warning.
 - The initial Sysmon policy is deliberately small and will require tuning and expansion.
-- Off-host backups and formal alert/index retention policies have not yet been implemented.
-- The endpoint is a lab Windows 10 system and should not be used for unsafe testing outside an isolated environment.
+- Backups currently remain on the server; an off-host copy and full restoration test are still required.
+- Formal Wazuh index, Prometheus metric and Loki log retention targets require final review.
+- The endpoints are lab systems and should not be used for unsafe testing outside an isolated environment.
 
 ## Planned work
 
-- Establish off-host backups for configuration and Wazuh data
-- Define index retention and storage monitoring
-- Verify the post-remediation SCA score
+- Copy verified backups to off-host storage and perform a documented restoration test
+- Finalise Wazuh, Prometheus and Loki retention targets
 - Expand and tune Sysmon coverage
 - Add Windows Defender event collection
 - Review Wazuh vulnerability findings
 - Save analyst searches and write a concise incident report
-- Add a Linux endpoint and compare telemetry
 - Develop incident investigation runbooks
 - Add Suricata network monitoring
 - Add diagrams and sanitised screenshots as evidence
@@ -136,6 +156,7 @@ home-siem-lab/
 - [Security Configuration Assessment](docs/08-security-configuration-assessment.md)
 - [Roadmap](docs/09-roadmap.md)
 - [Progress checklist](docs/10-progress-checklist.md)
+- [Observability, alerting and resilience](docs/11-observability-alerting-and-resilience.md)
 - [Security and disclosure guidance](SECURITY.md)
 
 ## Author

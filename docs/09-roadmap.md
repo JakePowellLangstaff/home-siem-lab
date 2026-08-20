@@ -19,6 +19,8 @@ This roadmap turns the working platform into a repeatable SOC and incident-respo
 - [x] Enable File Integrity Monitoring and Who-data
 - [x] Validate failed-logon and brute-force correlation alerts
 - [x] Establish a CIS Windows 10 SCA baseline
+- [x] Enrol a second Windows endpoint and the Ubuntu host
+- [x] Configure Sysmon collection on both Windows endpoints
 
 ## Phase 2 — Detection engineering
 
@@ -37,17 +39,22 @@ This roadmap turns the working platform into a repeatable SOC and incident-respo
 - [ ] Evaluate Sysmon DNS Query events
 - [ ] Evaluate registry and file-creation events
 - [ ] Tune exclusions based on measured noise
-- [ ] Enroll an Ubuntu endpoint
-- [ ] Create Windows and Linux agent groups
+- [x] Enroll an Ubuntu endpoint
+- [x] Create a central Windows Sysmon agent group
 
 ## Phase 4 — Reliability and hardening
 
-- [ ] Configure off-host backups
-- [ ] Test configuration restoration
+- [x] Automate local Wazuh backups with a systemd timer
+- [x] Verify backup archives with SHA-256 checksums
+- [x] Restrict exposed Wazuh Docker ports to required LAN interfaces
+- [x] Provide encrypted tailnet-only dashboard access with Tailscale Serve
+- [x] Deploy Grafana, Prometheus, Loki, Alloy, Node Exporter and cAdvisor
+- [x] Validate host, container and log data sources
+- [x] Configure and test Discord alert delivery and recovery
+- [ ] Replicate backups off-host
+- [ ] Perform a full restoration test
 - [ ] Define index retention targets
-- [ ] Monitor disk usage and container health
-- [ ] Restrict Wazuh ports with source-specific UFW rules
-- [ ] Replace the dashboard's untrusted certificate
+- [x] Monitor host resources and container health through Grafana
 - [ ] Move SSH to key-only authentication after recovery testing
 - [ ] Review Tailscale ACLs and device-key policy
 
@@ -62,9 +69,9 @@ This roadmap turns the working platform into a repeatable SOC and incident-respo
 
 ## Immediate next actions
 
-1. Verify the post-remediation SCA scan and record the score change.
-2. Review vulnerability-detection findings and prioritise one remediation.
-3. Add and validate Windows Defender telemetry.
-4. Save analyst searches and write a concise investigation report.
-5. Establish index retention, storage monitoring and off-host backups.
-6. Add Suricata network monitoring and then onboard a Linux endpoint.
+1. Review vulnerability-detection findings and prioritise one remediation.
+2. Add and validate Windows Defender telemetry.
+3. Save analyst searches and write a concise investigation report.
+4. Replicate backups off-host and perform a documented restoration test.
+5. Finalise Wazuh, Prometheus and Loki retention targets.
+6. Add Suricata network monitoring.
